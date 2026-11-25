@@ -1,0 +1,28 @@
+<section class="page-heading">
+  <div>
+    <p class="eyebrow">DISCOVER & CONTRIBUTE</p>
+    <h1>
+      <%= current_user.role == 'organization' ? 'Your opportunities' : 'Volunteering opportunities' %>
+    </h1>
+    <p class="muted">Explore meaningful activities across the campus community.</p>
+  </div>
+  <% if current_user.role == 'organization' %>
+    <%= link_to 'New opportunity', new_opportunity_path, class: 'button' %>
+  <% end %>
+</section>
+<%= form_with url: opportunities_path, method: :get,
+local: true, class: 'filter-bar', id: 'opportunity-filter' do |f| %>
+  <label>
+    Search
+    <%= f.search_field :q, value: params[:q],
+  placeholder: 'Search title, description or location' %>
+  </label>
+  <label>Category
+    <%= f.select :category, options_for_select([['All categories','']] + Opportunity::CATEGORIES,
+  params[:category]) %>
+  </label>
+  <%= f.submit 'Apply filters', class: 'button secondary' %>
+<% end %>
+<div id="opportunity-results" aria-live="polite">
+  <%= render 'results' %>
+</div>

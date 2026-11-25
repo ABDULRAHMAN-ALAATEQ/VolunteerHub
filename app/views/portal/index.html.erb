@@ -1,0 +1,244 @@
+<% role = current_user.role %>
+<section class="page-heading">
+  <div>
+    <p class="eyebrow"><%= role.capitalize %> WORKSPACE</p>
+    <h1>
+      <%= role == 'student' ? 'Your volunteering journey' : role == 'organization' ? 'Manage your impact' : 'Campus engagement overview' %>
+    </h1>
+    <p class="muted">
+      Welcome, <%= current_user.name %>. 
+      <%= role == 'student' ? 'Track your activities and verified contributions.' : role == 'organization' ? 'Publish opportunities and monitor participation.' : 'Review contributions and recognise student achievements.' %>
+    </p>
+  </div>
+  <%= link_to(role == 'organization' ? 'New opportunity' : 'Browse opportunities', role == 'organization' ? new_opportunity_path : opportunities_path, class: 'button') %>
+</section>
+<% if role == 'student' %>
+  <div class="stats">
+    <article>
+      <span>Registered activities</span>
+      <strong>
+        <%= @registrations.size %>
+      </strong>
+      <small>Your participation</small>
+    </article>
+    <article>
+      <span>Awaiting review</span>
+      <strong>
+        <%= @registrations.count { |r| r.status == 'submitted' } %>
+      </strong>
+      <small>Submitted hour logs</small>
+    </article>
+    <article>
+      <span>Verified hours</span>
+      <strong>
+        <%= number_with_precision(@registrations.select { |r| r.status == 'approved' }
+      .sum { |r| r.hours }, precision: 1) %>
+      </strong>
+      <small>Approved by deanship</small>
+    </article>
+    <article>
+      <span>Certificates</span>
+      <strong>
+        <%= @registrations.count { |r| r.certificate.present? } %>
+      </strong>
+      <small>Ready to print</small>
+    </article>
+  </div>
+  <h2>My activities</h2>
+  <div class="activity-grid">
+    <% @registrations.each do |r| %>
+      <article class="panel activity">
+        <div class="split">
+          <span class="tag">
+            <%= r.opportunity.category %>
+          </span>
+          <span class="status <%= r.status %>"><%= r.status.capitalize %></span>
+        </div>
+        <h3><%= link_to r.opportunity.title, opportunity_path(r.opportunity) %></h3>
+        <p class="muted">
+          <%= r.opportunity.starts_at.strftime('%d %b %Y · %H:%M') %> · <%= r.opportunity.location %>
+        </p>
+        <% if r.hours %>
+          <p>
+            <strong>
+              <%= r.hours %> hours
+            </strong>
+            logged
+          </p>
+        <% end %>
+        <% if r.review_note.present? %>
+          <p class="note">Review: <%= r.review_note %></p>
+        <% end %>
+        <% if %w[registered rejected].include?(r.status) && r.opportunity.ends_at <= Time.current %>
+          <%= form_with url: submit_hours_path(r), method: :post, local: true do |f| %>
+            <label>Hours (maximum 
+              <%= number_with_precision(r.opportunity.duration_hours, precision: 2,
+           strip_insignificant_zeros: true) %>
+              )
+              <%= f.number_field :hours,
+          min: 0.01, max: r.opportunity.duration_hours, step: 0.01,
+          value: r.hours, required: true %>
+            </label>
+            <label>Activity description
+              <%= f.text_area :activity_note, value: r.activity_note, required: true, rows: 2 %>
+            </label>
+            <%= f.submit 'Submit hours', class: 'button full' %>
+          <% end %>
+        <% elsif r.status == 'registered' %>
+          <p class="note">Hours can be logged after this activity ends.</p>
+        <% end %>
+        <% if r.certificate %>
+          <%= link_to 'View certificate', certificate_path(r.certificate),
+         class: 'button secondary full' %><% elsif r.status == 'approved' %>
+          <p class="note">Verified. Awaiting certificate issuance.</p>
+        <% end %>
+      </article>
+    <% end %>
+  </div>
+  <% if @registrations.empty? %>
+    <div class="empty">No activities yet. Browse opportunities to get started.</div>
+  <% end %>
+<% elsif role == 'organization' %>
+  <div class="stats">
+    <article>
+      <span>Opportunities</span>
+      <strong><%= @opportunities.size %></strong>
+      <small>Published activities</small>
+    </article>
+    <article>
+      <span>Open opportunities</span>
+      <strong><%= @opportunities.count { |o| o.available? } %></strong>
+      <small>Accepting registrations</small>
+    </article>
+    <article>
+      <span>Participants</span>
+      <strong><%= @registrations.size %></strong>
+      <small>Across your activities</small>
+    </article>
+    <article>
+      <span>Verified hours</span>
+      <strong>
+        <%= number_with_precision(@registrations.select { |r| r.status == 'approved' }
+        .sum { |r| r.hours }, precision: 1) %>
+      </strong>
+      <small>Approved contributions</small>
+    </article>
+  </div>
+  <div class="section-heading">
+    <h2>Your opportunities</h2>
+    <%= link_to 'Manage all >', opportunities_path %>
+  </div>
+  <div class="panel table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Opportunity</th>
+          <th>Schedule</th>
+          <th>Participants</th>
+          <th>Status</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody><% @opportunities.each do |o| %>
+          <tr>
+            <td>
+              <strong><%= o.title %></strong>
+              <small><%= o.category %></small>
+            </td>
+            <td>
+              <%= o.starts_at.strftime('%d %b %Y') %>
+            </td>
+            <td>
+              <%= o.registrations.count %> / <%= o.capacity %>
+            </td>
+            <td>
+              <span class="status <%= o.available? ? 'approved' : 'registered' %>">
+                <%= o.available? ? 'Open' : 'Unavailable' %>
+              </span>
+            </td>
+            <td>
+              <%= link_to 'Manage', opportunity_path(o) %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+    <% if @opportunities.empty? %>
+      <div class="empty">Create your first opportunity.</div>
+    <% end %>
+  </div>
+  <h2>Participant activity</h2>
+  <%= render 'participant_table', registrations: @registrations %>
+<% else %>
+  <div class="stats">
+    <article>
+      <span>Organizations</span>
+      <strong><%= @organizations.size %></strong>
+      <small>Campus partners</small>
+    </article>
+    <article>
+      <span>Opportunities</span>
+      <strong><%= @opportunities.size %></strong>
+      <small>Published activities</small>
+    </article>
+    <article>
+      <span>Pending reviews</span>
+      <strong><%= @registrations.count { |r| r.status == 'submitted' } %></strong>
+      <small>Require a decision</small>
+    </article>
+    <article>
+      <span>Verified hours</span>
+      <strong><%= number_with_precision(@registrations.select { |r| r.status == 'approved' }
+      .sum { |r| r.hours }, precision: 1) %></strong>
+      <small>Across campus</small>
+    </article>
+  </div>
+  <h2>Hour review queue</h2>
+  <div class="activity-grid">
+    <% @registrations.select { |r| r.status == 'submitted' }.each do |r| %>
+      <article class="panel activity">
+        <div class="split"><span class="status submitted">Pending review</span><strong><%= r.hours %> h</strong></div>
+        <h3><%= r.student.name %></h3>
+        <p class="muted"><%= r.opportunity.title %></p>
+        <p class="note"><%= r.activity_note %></p>
+        <%= form_with url: review_registration_path(r), method: :patch, local: true do |f| %>
+          <label>Review note (required for rejection)<%= f.text_area :review_note, rows: 2 %></label>
+          <div class="actions">
+            <button class="button" name="decision" value="approved">Approve</button>
+            <button class="button danger" name="decision" value="rejected">Reject</button>
+          </div>
+        <% end %>
+      </article>
+    <% end %>
+  </div>
+  <% unless @registrations.any? { |r| r.status == 'submitted' } %>
+    <div class="empty">No submissions awaiting review.</div>
+  <% end %>
+  <h2>Certificate issuance</h2>
+  <div class="activity-grid"><% @registrations.select { |r| r.status == 'approved' }.each do |r| %>
+      <article class="panel activity"><span class="status approved">Approved</span>
+        <h3><%= r.student.name %></h3>
+        <p><%= r.opportunity.title %> · <strong><%= r.hours %> h</strong></p>
+        <% if r.certificate %><%= link_to 'View certificate',
+          certificate_path(r.certificate), class: 'button secondary full' %>
+        <% else %>
+          <%= button_to 'Issue certificate',
+          issue_certificate_path(r), class: 'button full' %>
+        <% end %>
+      </article>
+    <% end %>
+  </div>
+  <% unless @registrations.any? { |r| r.status == 'approved' } %>
+    <div class="empty">Approved logs will appear here.</div>
+  <% end %>
+  <h2>All participation records</h2>
+  <%= render 'participant_table', registrations: @registrations %>
+  <h2>Partner organizations</h2>
+  <div class="activity-grid"><% @organizations.each do |o| %>
+      <article class="panel activity">
+        <h3><%= o.name %></h3>
+        <p class="muted"><%= o.email %> - <%= o.opportunities.count %> opportunities</p>
+      </article>
+    <% end %>
+  </div>
+<% end %>

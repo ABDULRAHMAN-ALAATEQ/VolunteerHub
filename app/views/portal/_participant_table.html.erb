@@ -1,0 +1,22 @@
+<div class="panel table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Student</th>
+        <th>Opportunity</th>
+        <th>Hours</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody><% registrations.each do |r| %>
+        <tr>
+          <td><strong><%= r.student.name %></strong></td>
+          <td><%= r.opportunity.title %></td>
+          <td><%= r.hours || 'Not logged' %></td>
+          <td><span class="status <%= r.status %>"><%= r.status.capitalize %></span></td>
+        </tr>
+      <% end %></tbody>
+  </table>
+  <% if registrations.empty? %>
+    <div class="empty">No participation records.</div>
+  <% end %></div>

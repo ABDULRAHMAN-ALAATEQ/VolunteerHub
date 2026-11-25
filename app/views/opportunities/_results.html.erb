@@ -1,0 +1,49 @@
+<p class="muted result-count">
+  <%= @opportunities.size %> opportunities found
+</p>
+<div class="opportunity-grid">
+  <% @opportunities.each do |o| %>
+    <article class="panel opportunity-card">
+      <div class="category-art <%= o.category.downcase %>">
+        <span class="art-symbol" aria-hidden="true">
+          <%= {'Community'=>'','Environment'=>'','Education'=>'','Health'=>'','Campus'=>''}[o.category] %>
+        </span>
+        <span class="art-label">
+          <%= o.category.upcase %>
+        </span>
+      </div>
+      <div class="card-body">
+        <div class="split">
+          <span class="tag">
+            <%= o.category %>
+          </span>
+          <span class="status <%= o.available? ? 'approved' : 'registered' %>">
+            <%= o.available? ? 'Open' : 'Unavailable' %>
+          </span>
+        </div>
+        <h3>
+          <%= o.title %>
+        </h3>
+        <p class="muted">
+          <%= o.organization.name %>
+        </p>
+        <p>
+          <%= truncate(o.description, length: 125) %>
+        </p>
+        <div class="metadata">
+          <span><%= o.starts_at.strftime('%d %b · %H:%M') %></span>
+          <span><%= o.location %></span>
+          <span><%= o.remaining %> / <%= o.capacity %> spots remaining</span>
+        </div>
+        <div class="progress">
+          <span style="width:<%= [(o.registrations.count.to_f / o.capacity * 100).round,100].min %>%">
+          </span>
+        </div>
+        <%= link_to 'View details >', opportunity_path(o), class: 'button secondary full' %>
+      </div>
+    </article>
+  <% end %>
+</div>
+<% if @opportunities.empty? %>
+  <div class="empty">No matching opportunities. Try another filter.</div>
+<% end %>

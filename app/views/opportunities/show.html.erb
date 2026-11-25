@@ -1,0 +1,54 @@
+<%= link_to '< All opportunities', opportunities_path, class: 'back' %>
+<section class="page-heading">
+  <div>
+    <p class="eyebrow"><%= @opportunity.category.upcase %> OPPORTUNITY</p>
+    <h1><%= @opportunity.title %></h1>
+    <p class="muted">Hosted by <%= @opportunity.organization.name %></p>
+  </div>
+  <% if current_user.role == 'organization' %>
+    <%= link_to 'Edit opportunity', edit_opportunity_path(@opportunity), class: 'button' %>
+  <% end %>
+</section>
+<div class="detail-grid">
+  <article class="panel padded">
+    <h2>About this opportunity</h2>
+    <p class="description"><%= @opportunity.description %></p>
+    <h3>Activity details</h3>
+    <dl>
+      <dt>Location</dt>
+      <dd><%= @opportunity.location %></dd>
+      <dt>Starts</dt>
+      <dd><%= @opportunity.starts_at.strftime('%d %b %Y · %H:%M') %></dd>
+      <dt>Ends</dt>
+      <dd><%= @opportunity.ends_at.strftime('%d %b %Y · %H:%M') %></dd>
+      <dt>Duration</dt>
+      <dd><%= number_with_precision(@opportunity.duration_hours, precision: 2,
+       strip_insignificant_zeros: true) %>
+        hours
+      </dd>
+    </dl>
+  </article>
+  <aside class="panel padded">
+    <span class="status <%= @opportunity.available? ? 'approved' : 'registered' %>">
+      <%= @opportunity.available? ? 'Accepting registrations' : 'Registration unavailable' %>
+    </span>
+    <h2><%= @opportunity.remaining %> spots left</h2>
+    <p class="muted">Capacity: <%= @opportunity.capacity %> participants</p>
+    <% if current_user.role == 'student' %><% if @registration %>
+        <p class="note">You are registered. Manage your activity from your overview.</p>
+        <%= link_to 'My activities', root_path, class: 'button full' %>
+      <% elsif @opportunity.available? %>
+        <%= button_to 'Register for opportunity',
+        register_opportunity_path(@opportunity),
+        class: 'button full' %>
+      <% else %>
+        <p>Registration is closed, full or the event has started.</p>
+      <% end %>
+    <% end %>
+  </aside>
+</div>
+<% if current_user.role != 'student' %>
+  <h2>Participants</h2>
+  <%= render 'portal/participant_table',
+  registrations: @opportunity.registrations.includes(:student, :opportunity) %>
+<% end %>

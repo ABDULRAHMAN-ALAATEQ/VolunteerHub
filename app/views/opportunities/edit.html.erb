@@ -1,0 +1,9 @@
+<%= link_to '< All opportunities', opportunities_path, class: 'back' %>
+<section class="page-heading">
+  <div>
+    <p class="eyebrow">ORGANISATION WORKSPACE</p>
+    <h1>Edit opportunity</h1>
+    <p class="muted">Set the activity details and participant capacity.</p>
+  </div>
+</section>
+<%= render 'form', opportunity: @opportunity %>

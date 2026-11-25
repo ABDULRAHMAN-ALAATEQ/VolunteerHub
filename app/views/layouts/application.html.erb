@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>VolunteerHub | Campus engagement</title>
+    <%= csrf_meta_tags %>
+    <link rel="stylesheet" href="/volunteerhub.css">
+    <script src="/volunteerhub.js" defer></script>
+  </head>
+  <body>
+    <% if current_user %>
+      <header class="topbar">
+        <div class="nav-inner">
+          <%= link_to root_path, class: 'brand' do %>
+            <span class="brand-mark">V</span>
+            <span>Volunteer<span class="accent">Hub</span><small>CAMPUS ENGAGEMENT</small></span>
+          <% end %>
+          <nav aria-label="Main navigation">
+            <%= link_to 'Overview', root_path, class: (current_page?(root_path) ? 'active' : '') %>
+            <%= link_to 'Opportunities', opportunities_path,
+            class: (controller_name == 'opportunities' ? 'active' : '') %>
+          </nav>
+          <div class="identity"><span class="avatar"><%= current_user.name.first.upcase %>
+            </span>
+            <span>
+              <strong><%= current_user.name %></strong>
+              <small><%= current_user.role.capitalize %></small>
+            </span>
+            <%= button_to 'Sign out', logout_path, method: :delete, class: 'button secondary small' %>
+          </div>
+        </div>
+      </header>
+    <% end %>
+    <main class="shell <%= 'login-shell' unless current_user %>"><% flash.each do |kind, message| %>
+        <div class="flash <%= kind %>" role="status"><%= message %></div>
+      <% end %><%= yield %></main>
+    <footer class="footer">VolunteerHub <span>-</span> SENG 361 <span>-</span>
+      Abdulrahman Sulaiman <span>-</span> 202304070</footer>
+  </body></html>

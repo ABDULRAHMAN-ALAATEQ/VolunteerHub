@@ -1,0 +1,31 @@
+<section class="page-heading no-print">
+  <div>
+    <p class="eyebrow">VERIFIED ACHIEVEMENT</p>
+    <h1>Volunteering certificate</h1>
+    <p class="muted">Print or save a copy as PDF using your browser.</p>
+  </div>
+  <button class="button" type="button" id="print-certificate">Print / Save PDF</button>
+</section>
+<article class="certificate">
+  <div class="certificate-inner"><span class="brand-mark">V</span>
+    <p class="eyebrow">VOLUNTEERHUB - STUDENT AFFAIRS</p>
+    <h1>Certificate of Participation</h1>
+    <p>This certificate recognises</p>
+    <h2><%= @certificate.student_name %></h2>
+    <p>for completing <strong><%= @certificate.hours %> verified volunteering hours</strong><br>
+      in the activity</p>
+    <h3><%= @certificate.opportunity_title %></h3>
+    <div class="certificate-meta">
+      <div>
+        <strong><%= @certificate.issued_at.strftime('%d %B %Y') %></strong>
+        <span>Issue date</span>
+      </div>
+      <div>
+        <strong><%= @certificate.code %></strong>
+        <span>Certificate ID</span>
+      </div>
+    </div>
+    <p class="muted">VOLUNTEER HUB</p>
+  </div>
+</article>
+<%= link_to '< Return to overview', root_path, class: 'back no-print' %>
